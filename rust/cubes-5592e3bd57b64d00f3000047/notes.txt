@@ -1,0 +1,74 @@
+will need to find out what n^3 + (n-1)^3+...1^3 is efficiently
+- could do recursion, may be slow
+ - with that, we can reuse results, add on (n+1)^3 if < m
+
+- other idea was to see that it is n^3+SUM(i=1..(n-1), (n-i)^3)
+ - simplify, cube formula             -> n^3 + SUM(i=1..(n-1),(n^3 - i^3 - 3*n*i*(n-i)))   /* cube formula is (a-b)^3 = a^3-b^3-3*a*b */
+ - expand, split out sums             -> n^3 + SUM(i=1..(n-1),n^3) - SUM(i=1..(n-1),i^3) - SUM(i=1..(n-1),3*i*n^2 - 3*n*i^2)
+ - expand, split out sums             -> n^3 + SUM(i=1..(n-1),n^3) - SUM(i=1..(n-1),i^3) - SUM(i=1..(n-1),3*i*n^2) - SUM(i=1..(n-1),3*n*i^2)
+ - simplify, reduce sums with only    -> n^3 + (n-1)*n^3 - SUM(..i^3) - 3*(n-1)*n^2*SUM(..i) - 3*(n-1)*n*SUM(..i^2)
+ - simplify                           -> n^3 + n^4 - n^3 - SUM(..i^3) - (3*n^3 - 3*n^2)*SUM(..i) - (3*n^2 - 3*n)*SUM(..i^2)
+ - simplify                           -> n^4 - SUM(..i^3) - (3*n^3 - 3*n^2)*SUM(..i) - (3*n^2 - 3*n)*SUM(..i^2)
+ - expand                             -> n^4 - SUM(..i^3) - 3*n^3*SUM(..i) - 3*n^2*SUM(..i) - 3*n^2*SUM(..i^2) - 3*n*SUM(..i^2)
+      /* sum of k to n is n*(n+1)/2, sum of k^2 is n*(n+1)*(2*n+1)/6, sum of k^3 is n^2*(n+1)^2)/4 */
+      /* sums in this are only to n-1
+ - expand, sum of single/square/cube  -> n^4 - (n-1)^2*n^2/4 - (3*n^3*(n-1)*n - 3*n^2*(n-1)*n)/2 - (3*n^2*n*(n-1)*(2*n-1) - 3*n*n*(n-1)*(2*n-1))/6
+      /* square formula is (a-b)^2 = a^2 + b^2 - 2*a*b
+ - expand                             -> n^4 - (n^2 + 1 - 2*n)*n^2/4 - (3*n^3*(n^2-n) - 3*n^2*(n^2-n))/2 - (3*n^3*(2*n^2-3*n+1) - 3*n^2*(2*n^2-3*n+1))/6
+ - expand                             -> n^4 - (n^4 - 2*n^3 + n^2)/4 - (3*n^5 - 3*n^4 - 3*n^4 - 3*n^3)/2 - (6*n^5 - 9*n^4 + 3*n^3 - 6*n^4 - 9*n^3 + 3*n^2)/6
+ - simplify                           -> n^4 - (n^4 - 2*n^3 + n^2)/4 - (3*n^5 - 6*n^4 - 3*n^3)/2 - (6*n^5 - 15*n^4 - 6*n^3 + 3*n^2)/6
+ - get common root of 12              -> (12*n^4 - 3*n^4 + 6*n^3 - 3*n^2 - 18*n^5 + 36*n^4 + 18*n^3 - 12*n^5 - 30*n^4 - 12*n^3 - 6*n^2)/12
+ - simply and order                   -> (-30*n^5 + 15*n^4 + 12*n^3 - 9*n^2)/12
+- this isn't working, will go with naive solution to start
+
+
+best way is to just test each pow going up until overflow? unsure how to solve for n once we simplify correctly
+
+
+... can simplify from start as it is a sum of the cube, so n^2*(n+1)^2/4
+then solve for n, when m=n^2*(n+1)^2/4, you get (sqrt(8 * sqrt(vol) + 1) - 1) / 2
+to do that, find inverse of m=n^2*(n+1)^2/4
+  - 4*m = n^2*(n+1)^2
+  - (+-)sqrt(4*m) = n*(n+1)
+  - (+-)sqrt(4*m) = n^2 + n
+  - 0 = n^2 + n (+-)sqrt(4*m)
+    /* n = (-b (+-)sqrt(b^2-4*a*c))/2*a, a = 1, b = 1, c = (+-)sqrt(4*m) */
+  - n = (-1(+-)sqrt(1(+-)4*sqrt(4)*sqrt(m)))/2
+    /* pick one that fits the right curve */
+  - n = (sqrt(1 + 8*sqrt(m)) - 1)/2
+
+
+one solution:
+fn find_nb(n: u64) -> i32 {
+    let kk = (4.0 * n as f64).sqrt().sqrt().floor() as u64;
+    if 4u64 * n == kk * kk * (kk + 1u64) * (kk + 1u64)
+        {kk as i32}
+    else
+        {-1}
+}
+
+another:
+fn find_nb(vol: u64) -> i32 {
+    // source (shortened link becuase it was REALLY long): https://bit.ly/3y4W2eD
+    // if you take the sumnation of x^3 (x=1 -> x=n), and convert to a function you get:
+    // volume = (n^2 * (n+1)^2) / 4
+    // now to find the inverse... https://www.wolframalpha.com/input/?i=inverse+of+1%2F4+x%5E2+%281+%2B+x%29%5E2
+    // graph all 4 functions to see which we need: https://www.desmos.com/calculator/vahflq6btk
+    // we need the 3rd one:
+    // (sqrt(8 * sqrt(vol) + 1) - 1) / 2
+    
+    let ans = ((8f64 * (vol as f64).sqrt() + 1f64).sqrt() - 1f64) / 2f64;
+    
+    // if ans close to a whole number, just round and return
+    if ans % 1f64 <= 0.000000000000001 || ans % 1f64 >= 0.999999999999999 {
+        return ans as i32;
+    } else {
+        return -1;
+    }
+}
+
+another:
+fn find_nb(n: u64) -> i32 {
+  let k: u64 = ((4.0*n as f64).powf(0.25) - 0.5).ceil() as u64;
+  if k*k*(k + 1)*(k + 1) == 4*n {k as i32} else {-1}
+}
