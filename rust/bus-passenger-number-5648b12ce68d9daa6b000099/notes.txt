@@ -1,0 +1,1 @@
+go through array, have a sum of passengers, subtract those that leave and add those that board. sum at end is ans
