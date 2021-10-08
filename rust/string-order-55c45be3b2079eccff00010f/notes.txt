@@ -3,3 +3,6 @@ then for each word find an integer in it
 sort on that (lambda maybe?)
 join string back
 return
+
+
+other solutions create new string with digit chars then parse. I wonder about perf

@@ -22,7 +22,7 @@ fn get_number_from_string(string: &str) -> u64 {
 fn order(sentence: &str) -> String {
     // code here
     let mut split: Vec<_> = sentence.split_whitespace().collect();
-    split.sort_by_key(|s| get_number_from_string(s));
+    split.sort_by_cached_key(|s| get_number_from_string(s));
     return split.join(" ");
 }
 
