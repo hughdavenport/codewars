@@ -1,0 +1,8 @@
+[package]
+name = "membership-5502c9e7b3216ec63c0001aa"
+version = "0.1.0"
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
